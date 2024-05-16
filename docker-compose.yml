@@ -1,0 +1,71 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: nomcci
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: reto2
+
+  security_service:
+    build: .
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+      - rabbitmq
+      - logs_service
+
+  rabbitmq:
+    image: rabbitmq:management
+    ports:
+      - "5672:5672"  # Puerto para la conexión de RabbitMQ
+      - "15672:15672"  # Puerto para la interfaz de gestión de RabbitMQ
+    environment:
+      RABBITMQ_DEFAULT_USER: nomcci  # Usuario de RabbitMQ
+      RABBITMQ_DEFAULT_PASS: 123  # Contraseña de RabbitMQ
+
+  logs_service:
+    build:
+      context: ./reto-4-logs  # Ruta al directorio donde se encuentra el Dockerfile y el código fuente de Go
+      dockerfile: Dockerfile   # Nombre del archivo Dockerfile
+    ports:
+      - "8080:8080"  # Puerto para el servicio de Go
+    depends_on:
+      - postgres
+      - rabbitmq
+
+  health_service:
+    build: ./MicroServiceChecker
+    ports:
+      - "8088:8088"
+    environment:
+      PYTHON_SERVICE_URL: "http://web:5000"  # URL del servicio Python (logs)
+      GO_SERVICE_URL: "http://go_service:8080"  # URL del servicio Go (gestión de usuarios)
+    stdin_open: true
+
+  userprofile_service:
+    build:
+      context: ./UserProfileService
+      dockerfile: Dockerfile
+    ports:
+      - "5055:5055"
+    depends_on:
+      - postgres
+      - rabbitmq
+      - health_service
+
+  gateway_service:
+    build:
+      context: ./Gateway
+    ports:
+      - "8180:8180"
+    depends_on:
+      - postgres
+      - rabbitmq
+      - health_service
+      - security_service
+      - userprofile_service
+    stdin_open: true
+    tty: true

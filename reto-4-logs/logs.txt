@@ -1,0 +1,1 @@
+{"application":"auth_service","type":"user_registration","module":"user_management","timestamp":"2024-04-18 03:17:20.459064","summary":"User registered","description":"User 'osd2' has been registered."}

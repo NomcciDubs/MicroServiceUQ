@@ -1,0 +1,14 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'web'
+    static_configs:
+      - targets: ['web:5000']
+#    metrics_path: /health  # Aquí se especifica la ruta a la que Prometheus enviará la solicitud GET
+
+  - job_name: 'go_service'
+    static_configs:
+      - targets: ['go_service:8080']
+#    metrics_path: /health  # Aquí se especifica la ruta a la que Prometheus enviará la solicitud GET
+
